@@ -1,0 +1,6 @@
+{
+  "name": "Dungeon Slasher: Infinite",
+  "description": "A fast-paced retro clicker arcade game where an AI Dungeon Master generates bizarre, funny monsters with stage countdown timers and game over loops!",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
