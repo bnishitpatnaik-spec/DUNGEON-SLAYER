@@ -1,0 +1,16 @@
+{
+  "entities": {
+    "leaderboard": {
+      "title": "Leaderboard Entry",
+      "description": "High scores and total gold achieved by players",
+      "properties": {
+        "playerName": { "type": "string" },
+        "highestFloor": { "type": "number" },
+        "totalGold": { "type": "number" },
+        "title": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["playerName", "highestFloor", "totalGold"]
+    }
+  }
+}
