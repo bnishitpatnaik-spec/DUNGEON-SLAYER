@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Trophy, X, RefreshCw, UserCheck, Flame, Coins, ShieldCheck, Crown, Medal, Search, Sparkles } from 'lucide-react';
+import { Trophy, X, RefreshCw, UserCheck, Flame, Coins, ShieldCheck, Crown, Medal, Search, Sparkles, Clock } from 'lucide-react';
 import { LeaderboardEntry } from '../types';
 
 interface LeaderboardModalProps {
@@ -8,6 +8,7 @@ interface LeaderboardModalProps {
   currentBattleName: string;
   currentHighScore: number;
   currentGold: number;
+  currentTimeTaken?: number;
 }
 
 export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
@@ -15,12 +16,25 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
   onClose,
   currentBattleName,
   currentHighScore,
-  currentGold
+  currentGold,
+  currentTimeTaken = 0
 }) => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [playerRankInfo, setPlayerRankInfo] = useState<{ rank: number; total: number } | null>(null);
+
+  // Format time helper
+  const formatTimeTaken = (totalSec?: number) => {
+    if (!totalSec || totalSec <= 0) return '0s';
+    const hrs = Math.floor(totalSec / 3600);
+    const mins = Math.floor((totalSec % 3600) / 60);
+    const secs = Math.floor(totalSec % 60);
+
+    if (hrs > 0) return `${hrs}h ${mins}m`;
+    if (mins > 0) return `${mins}m ${secs}s`;
+    return `${secs}s`;
+  };
 
   // Fetch or sync leaderboard from server + fallback to localStorage
   const fetchLeaderboard = async () => {
@@ -33,7 +47,8 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
         body: JSON.stringify({
           playerName: currentBattleName,
           highestFloor: currentHighScore,
-          totalGold: currentGold
+          totalGold: currentGold,
+          timeTaken: currentTimeTaken
         })
       });
 
@@ -53,10 +68,10 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
       // Fallback calculation using local cache + current player
       const cached = localStorage.getItem('dungeon_clicker_leaderboard_cache');
       let list: LeaderboardEntry[] = cached ? JSON.parse(cached) : [
-        { id: '1', playerName: 'Valeros_The_Undying', highestFloor: 50, totalGold: 250000, title: 'Dungeon Overlord', updatedAt: new Date().toISOString() },
-        { id: '2', playerName: 'Glitched_Goblin_Slayer', highestFloor: 38, totalGold: 140000, title: 'Mythic Executioner', updatedAt: new Date().toISOString() },
-        { id: '3', playerName: 'Pixel_Vanquisher', highestFloor: 27, totalGold: 78000, title: 'Floor Master', updatedAt: new Date().toISOString() },
-        { id: '4', playerName: 'Aether_Warlock', highestFloor: 19, totalGold: 35000, title: 'Spellblade Veteran', updatedAt: new Date().toISOString() }
+        { id: '1', playerName: 'Valeros_The_Undying', highestFloor: 50, totalGold: 250000, timeTaken: 1850, title: 'Dungeon Overlord', updatedAt: new Date().toISOString() },
+        { id: '2', playerName: 'Glitched_Goblin_Slayer', highestFloor: 38, totalGold: 140000, timeTaken: 1240, title: 'Mythic Executioner', updatedAt: new Date().toISOString() },
+        { id: '3', playerName: 'Pixel_Vanquisher', highestFloor: 27, totalGold: 78000, timeTaken: 820, title: 'Floor Master', updatedAt: new Date().toISOString() },
+        { id: '4', playerName: 'Aether_Warlock', highestFloor: 19, totalGold: 35000, timeTaken: 510, title: 'Spellblade Veteran', updatedAt: new Date().toISOString() }
       ];
 
       // Add/Update current player
@@ -64,12 +79,14 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
       if (pIndex >= 0) {
         list[pIndex].highestFloor = Math.max(list[pIndex].highestFloor, currentHighScore);
         list[pIndex].totalGold = Math.max(list[pIndex].totalGold, currentGold);
+        list[pIndex].timeTaken = Math.max(list[pIndex].timeTaken || 0, currentTimeTaken);
       } else {
         list.push({
           id: Math.random().toString(36).substring(2, 9),
           playerName: currentBattleName,
           highestFloor: currentHighScore,
           totalGold: currentGold,
+          timeTaken: currentTimeTaken,
           title: currentHighScore >= 20 ? 'Floor Master' : currentHighScore >= 10 ? 'Spellblade Veteran' : 'Novice Adventurer',
           updatedAt: new Date().toISOString()
         });
@@ -92,7 +109,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
     if (isOpen && currentBattleName) {
       fetchLeaderboard();
     }
-  }, [isOpen, currentBattleName, currentHighScore, currentGold]);
+  }, [isOpen, currentBattleName, currentHighScore, currentGold, currentTimeTaken]);
 
   if (!isOpen) return null;
 
@@ -176,11 +193,18 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 text-xs bg-slate-950/80 px-3 py-2 rounded-lg border border-slate-800">
+              <div className="flex items-center gap-3 sm:gap-4 text-xs bg-slate-950/80 px-3 py-2 rounded-lg border border-slate-800">
                 <div className="text-center">
                   <span className="text-slate-400 text-[10px] block uppercase">HIGHEST FLOOR</span>
                   <span className="font-bold text-emerald-400 text-sm flex items-center justify-center gap-1">
                     <Flame className="w-3.5 h-3.5" /> #{currentPlayerEntry.highestFloor}
+                  </span>
+                </div>
+                <div className="h-6 w-px bg-slate-800" />
+                <div className="text-center">
+                  <span className="text-slate-400 text-[10px] block uppercase">TIME TAKEN</span>
+                  <span className="font-bold text-cyan-300 text-sm flex items-center justify-center gap-1">
+                    <Clock className="w-3.5 h-3.5 text-cyan-400" /> {formatTimeTaken(currentPlayerEntry.timeTaken)}
                   </span>
                 </div>
                 <div className="h-6 w-px bg-slate-800" />
@@ -279,11 +303,16 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
                     </div>
                   </div>
 
-                  {/* Floor & Gold Stats */}
-                  <div className="flex items-center gap-3 text-xs shrink-0">
+                  {/* Floor, Time & Gold Stats */}
+                  <div className="flex items-center gap-2 sm:gap-3 text-xs shrink-0">
                     <div className="text-right">
                       <span className="text-[10px] text-slate-500 block uppercase">FLOOR</span>
                       <span className="font-bold text-emerald-400">#{entry.highestFloor}</span>
+                    </div>
+                    <div className="h-5 w-px bg-slate-800" />
+                    <div className="text-right">
+                      <span className="text-[10px] text-slate-500 block uppercase">TIME</span>
+                      <span className="font-bold text-cyan-300">{formatTimeTaken(entry.timeTaken)}</span>
                     </div>
                     <div className="h-5 w-px bg-slate-800" />
                     <div className="text-right">

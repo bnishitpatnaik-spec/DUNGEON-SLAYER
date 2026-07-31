@@ -7,10 +7,11 @@
         "playerName": { "type": "string" },
         "highestFloor": { "type": "number" },
         "totalGold": { "type": "number" },
+        "timeTaken": { "type": "number", "description": "Time taken by player in seconds" },
         "title": { "type": "string" },
         "updatedAt": { "type": "string" }
       },
-      "required": ["playerName", "highestFloor", "totalGold"]
+      "required": ["playerName", "highestFloor", "totalGold", "timeTaken"]
     }
   }
 }

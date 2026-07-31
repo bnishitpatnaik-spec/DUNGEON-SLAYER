@@ -23,12 +23,12 @@ const db = firebaseConfigJson.firestoreDatabaseId
 const leaderboardCol = collection(db, "leaderboard");
 
 const INITIAL_HEROES = [
-  { id: "valeros", playerName: "Valeros_The_Undying", highestFloor: 50, totalGold: 250000, title: "Dungeon Overlord", updatedAt: "2026-07-30T10:00:00Z" },
-  { id: "goblin_slayer", playerName: "Glitched_Goblin_Slayer", highestFloor: 38, totalGold: 140000, title: "Mythic Executioner", updatedAt: "2026-07-30T14:20:00Z" },
-  { id: "pixel_vanquisher", playerName: "Pixel_Vanquisher", highestFloor: 27, totalGold: 78000, title: "Floor Master", updatedAt: "2026-07-30T18:10:00Z" },
-  { id: "aether_warlock", playerName: "Aether_Warlock", highestFloor: 19, totalGold: 35000, title: "Spellblade Veteran", updatedAt: "2026-07-31T01:05:00Z" },
-  { id: "shadow_rogue", playerName: "Shadow_Rogue_X", highestFloor: 14, totalGold: 18500, title: "Dungeon Explorer", updatedAt: "2026-07-31T02:00:00Z" },
-  { id: "arcade_rookie", playerName: "Arcade_Rookie", highestFloor: 8, totalGold: 5200, title: "Dungeon Explorer", updatedAt: "2026-07-31T02:30:00Z" },
+  { id: "valeros", playerName: "Valeros_The_Undying", highestFloor: 50, totalGold: 250000, timeTaken: 1850, title: "Dungeon Overlord", updatedAt: "2026-07-30T10:00:00Z" },
+  { id: "goblin_slayer", playerName: "Glitched_Goblin_Slayer", highestFloor: 38, totalGold: 140000, timeTaken: 1240, title: "Mythic Executioner", updatedAt: "2026-07-30T14:20:00Z" },
+  { id: "pixel_vanquisher", playerName: "Pixel_Vanquisher", highestFloor: 27, totalGold: 78000, timeTaken: 820, title: "Floor Master", updatedAt: "2026-07-30T18:10:00Z" },
+  { id: "aether_warlock", playerName: "Aether_Warlock", highestFloor: 19, totalGold: 35000, timeTaken: 510, title: "Spellblade Veteran", updatedAt: "2026-07-31T01:05:00Z" },
+  { id: "shadow_rogue", playerName: "Shadow_Rogue_X", highestFloor: 14, totalGold: 18500, timeTaken: 340, title: "Dungeon Explorer", updatedAt: "2026-07-31T02:00:00Z" },
+  { id: "arcade_rookie", playerName: "Arcade_Rookie", highestFloor: 8, totalGold: 5200, timeTaken: 190, title: "Dungeon Explorer", updatedAt: "2026-07-31T02:30:00Z" },
 ];
 
 const getTitleForFloor = (floor: number): string => {
@@ -113,7 +113,7 @@ async function startServer() {
   // API Route: Submit / Update Score
   app.post("/api/leaderboard", async (req, res) => {
     try {
-      const { playerName, highestFloor = 1, totalGold = 0 } = req.body || {};
+      const { playerName, highestFloor = 1, totalGold = 0, timeTaken = 0 } = req.body || {};
       if (!playerName || typeof playerName !== "string") {
         return res.status(400).json({ error: "Player name is required" });
       }
@@ -123,6 +123,7 @@ async function startServer() {
 
       const floorNum = Math.max(1, Number(highestFloor) || 1);
       const goldNum = Math.max(0, Number(totalGold) || 0);
+      const timeNum = Math.max(0, Number(timeTaken) || 0);
 
       const existing = rawList.find(
         (e) => e.playerName.toLowerCase() === cleanName.toLowerCase()
@@ -131,6 +132,7 @@ async function startServer() {
       let docId = existing ? existing.id : cleanName.toLowerCase().replace(/[^a-z0-9_]/g, "_");
       let updatedFloor = existing ? Math.max(existing.highestFloor || 1, floorNum) : floorNum;
       let updatedGold = existing ? Math.max(existing.totalGold || 0, goldNum) : goldNum;
+      let updatedTime = existing ? Math.max(existing.timeTaken || 0, timeNum) : timeNum;
       let updatedTitle = getTitleForFloor(updatedFloor);
 
       const updatedRecord = {
@@ -138,6 +140,7 @@ async function startServer() {
         playerName: cleanName,
         highestFloor: updatedFloor,
         totalGold: updatedGold,
+        timeTaken: updatedTime,
         title: updatedTitle,
         updatedAt: new Date().toISOString(),
       };

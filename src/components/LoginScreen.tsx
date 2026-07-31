@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, User, Trophy, Flame, Coins, Sparkles } from 'lucide-react';
+import { BarChart3, User, Trophy, Flame, Coins, Sparkles, Clock } from 'lucide-react';
 import { LeaderboardEntry } from '../types';
 
 interface LoginScreenProps {
@@ -33,6 +33,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, highScore = 1
     e.preventDefault();
     const finalName = battleName.trim() || 'HERO_42';
     onLogin(finalName);
+  };
+
+  const formatTime = (totalSec?: number) => {
+    if (!totalSec || totalSec <= 0) return '0s';
+    const mins = Math.floor(totalSec / 60);
+    const secs = Math.floor(totalSec % 60);
+    if (mins > 0) return `${mins}m ${secs}s`;
+    return `${secs}s`;
   };
 
   const formatNum = (num: number) => {
@@ -110,9 +118,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, highScore = 1
                 <span className="text-slate-200 font-bold uppercase">{entry.playerName}</span>
               </div>
 
-              <div className="flex items-center gap-3 text-[11px]">
+              <div className="flex items-center gap-2.5 text-[11px]">
                 <span className="text-emerald-400 flex items-center gap-0.5">
                   <Flame className="w-3 h-3" /> F#{entry.highestFloor}
+                </span>
+                <span className="text-cyan-300 flex items-center gap-0.5">
+                  <Clock className="w-3 h-3 text-cyan-400" /> {formatTime(entry.timeTaken)}
                 </span>
                 <span className="text-amber-400 flex items-center gap-0.5">
                   <Coins className="w-3 h-3" /> {formatNum(entry.totalGold)}

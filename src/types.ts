@@ -84,6 +84,7 @@ export interface LeaderboardEntry {
   playerName: string;
   highestFloor: number;
   totalGold: number;
+  timeTaken?: number; // total time taken in seconds
   title: string;
   updatedAt: string;
   rank?: number;

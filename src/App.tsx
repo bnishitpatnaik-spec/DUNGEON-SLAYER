@@ -163,6 +163,9 @@ export default function App() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [crtEnabled, setCrtEnabled] = useState(true);
   const [selectedTheme, setSelectedTheme] = useState('random');
+  const [timeTaken, setTimeTaken] = useState(() => {
+    return parseInt(localStorage.getItem('dungeon_time_taken') || '0', 10);
+  });
 
   const [upgrades, setUpgrades] = useState<Upgrade[]>(INITIAL_UPGRADES);
   const [heroes, setHeroes] = useState<HeroCompanion[]>(INITIAL_HEROES);
@@ -183,6 +186,19 @@ export default function App() {
   const [isIntermission, setIsIntermission] = useState(false);
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
 
+  // Track player playtime in seconds
+  useEffect(() => {
+    if (!isRunActive || isIntermission || isGameOver || !monster) return;
+    const timer = setInterval(() => {
+      setTimeTaken((prev) => {
+        const next = prev + 1;
+        localStorage.setItem('dungeon_time_taken', next.toString());
+        return next;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [isRunActive, isIntermission, isGameOver, monster]);
+
   // Auto sync player score to global leaderboard
   useEffect(() => {
     if (isLoggedIn && battleName) {
@@ -192,11 +208,12 @@ export default function App() {
         body: JSON.stringify({
           playerName: battleName,
           highestFloor: highScore,
-          totalGold: gold
+          totalGold: gold,
+          timeTaken
         })
       }).catch((err) => console.warn('Leaderboard score sync error:', err));
     }
-  }, [isLoggedIn, battleName, highScore]);
+  }, [isLoggedIn, battleName, highScore, timeTaken]);
 
   // Ref to hold current state for interval ticks without stale closures
   const stateRef = useRef({
@@ -847,6 +864,7 @@ export default function App() {
         currentBattleName={battleName}
         currentHighScore={highScore}
         currentGold={gold}
+        currentTimeTaken={timeTaken}
       />
 
       {/* Arcade Footer */}
